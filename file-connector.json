@@ -1,0 +1,9 @@
+name=my-sink-connector
+connector.class=io.confluent.connect.file.FilePulseSinkConnector
+tasks.max=1
+input.topics=my-topic
+file.target.path=/path/to/save/csv/files
+format.output.type=delimited
+file.locale=en-US
+file.delimiter=,
+file.formatter=com.github.jcustenborder.kafka.connect.utils.data.formatter.CsvFormatter
