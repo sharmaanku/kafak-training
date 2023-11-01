@@ -1,0 +1,11 @@
+create table zflFjRYUAl.payment_transfer_details(
+SENDER_NAME nvarchar(100),
+BENEFICIARY_NAME nvarchar(100),
+SENDER_ACCT int,
+BENEFICIARY_ACCT nvarchar(100),
+TRANSFERRED_AMOUNT int,
+SENDER_BANK nvarchar(100),
+BENEFICIARY_BANK nvarchar(100),
+TRANSACTION_ID int,
+TRANSACTION_DATE timestamp
+);
