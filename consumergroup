@@ -1,0 +1,84 @@
+using System;
+using System.Threading;
+using Confluent.Kafka;
+using Newtonsoft.Json;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Configure Kafka consumer settings
+        var consumerConfig = new ConsumerConfig
+        {
+            BootstrapServers = "kafka-broker1:9092,kafka-broker2:9092",
+            GroupId = "insurance-consumer-group",
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+        };
+
+        var topic = "insurance-events";
+        var numConsumers = 2; // Change this to the number of consumers you want.
+
+        for (int i = 0; i < numConsumers; i++)
+        {
+            int consumerId = i;
+            var consumerThread = new Thread(() => ConsumeMessages(consumerConfig, topic, consumerId));
+            consumerThread.Start();
+        }
+
+        // Keep the program running to allow consumers to continue processing messages
+        Thread.Sleep(Timeout.Infinite);
+    }
+
+    static void ConsumeMessages(ConsumerConfig config, string topic, int consumerId)
+    {
+        using (var consumer = new ConsumerBuilder<Ignore, string>(config).Build())
+        {
+            consumer.Subscribe(topic);
+
+            while (true)
+            {
+                try
+                {
+                    var message = consumer.Consume();
+
+                    // Deserialize the JSON message into an InsuranceEvent object
+                    var insuranceEvent = JsonConvert.DeserializeObject<InsuranceEvent>(message.Value);
+
+                    // Process the insurance event
+                    ProcessInsuranceEvent(insuranceEvent, consumerId);
+                }
+                catch (ConsumeException e)
+                {
+                    Console.WriteLine($"Consumer {consumerId} - Error consuming message: {e.Error.Reason}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Consumer {consumerId} - Error processing message: {ex.Message}");
+                }
+            }
+        }
+    }
+
+    static void ProcessInsuranceEvent(InsuranceEvent insuranceEvent, int consumerId)
+    {
+        // Implement your logic to process the insurance event here
+        Console.WriteLine($"Consumer {consumerId} - Received event: {insuranceEvent.EventType}, Policy: {insuranceEvent.PolicyNumber}");
+        // Add your custom processing code based on the event type
+    }
+
+    class InsuranceEvent
+    {
+        public string EventType { get; set; }
+        public string PolicyNumber { get; set; }
+        public InsuredParty InsuredParty { get; set; }
+        public string InsuranceType { get; set; }
+        public DateTime EventTimestamp { get; set; }
+        public decimal ClaimAmount { get; set; }
+    }
+
+    class InsuredParty
+    {
+        public string Name { get; set; }
+        public string Contact { get; set; }
+    }
+}
