@@ -1,0 +1,106 @@
+using System;
+using Confluent.Kafka;
+using Newtonsoft.Json;
+
+class producer
+{
+    static void Main(string[] args)
+    {
+        // Configure Kafka producer settings
+        var producerConfig = new ProducerConfig
+        {
+            BootstrapServers = "localhost:9092",
+            // Add any other Kafka producer configuration settings here
+        };
+
+        using (var producer = new ProducerBuilder<string, string>(producerConfig).Build())
+        {
+            var topic = "insurance-events";
+
+            // Continuously generate and publish insurance events to Kafka
+            while (true)
+            {
+                // Generate insurance event data
+                var insuranceEvent = GenerateInsuranceEvent();
+
+                // Serialize the data as JSON
+                var jsonData = JsonConvert.SerializeObject(insuranceEvent);
+
+                // Create a Kafka message and publish it to the topic
+                var message = new Message<string, string>
+                {
+                    Key = Guid.NewGuid().ToString(),
+                    Value = jsonData,
+                };
+
+                producer.Produce(topic, message, (deliveryReport) =>
+                {
+                    if (deliveryReport.Error.IsError)
+                    {
+                        Console.WriteLine($"Error: {deliveryReport.Error.Reason}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Published message to topic: {deliveryReport.Topic}");
+                    }
+                });
+            }
+        }
+    }
+
+    static InsuranceEvent GenerateInsuranceEvent()
+    {
+        var random = new Random();
+
+        // Generate a random event type
+        var eventType = random.Next(1, 4); // 1: PolicyCreation, 2: PolicyUpdate, 3: ClaimSubmission
+
+        // Generate a random policy number
+        var policyNumber = $"POL-{random.Next(1000, 9999)}";
+
+        // Generate insured party details
+        var insuredParty = new InsuredParty
+        {
+            Name = "John Doe",
+            Contact = "johndoe@example.com",
+        };
+
+        // Generate a random insurance type
+        var insuranceType = "Auto Insurance";
+
+        // Generate a random event timestamp
+        var eventTimestamp = DateTime.UtcNow;
+
+        // Generate a random claim amount (if it's a claim event)
+        var claimAmount = eventType == 3 ? random.Next(1000, 10000) : 0;
+
+        // Create the insurance event
+        var insuranceEvent = new InsuranceEvent
+        {
+            EventType = eventType == 1 ? "PolicyCreation" : (eventType == 2 ? "PolicyUpdate" : "ClaimSubmission"),
+            PolicyNumber = policyNumber,
+            InsuredParty = insuredParty,
+            InsuranceType = insuranceType,
+            EventTimestamp = eventTimestamp,
+            ClaimAmount = claimAmount,
+        };
+
+        return insuranceEvent;
+    }
+}
+
+class InsuranceEvent
+{
+    public string EventType { get; set; }
+    public string PolicyNumber { get; set; }
+    public InsuredParty InsuredParty { get; set; }
+    public string InsuranceType { get; set; }
+    public DateTime EventTimestamp { get; set; }
+    public decimal ClaimAmount { get; set; }
+}
+
+class InsuredParty
+{
+    public string Name { get; set; }
+    public string Contact { get; set; }
+}
