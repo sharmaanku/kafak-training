@@ -1,3 +1,6 @@
+create stream identify_json_Error(customer_name varchar,complaint_type varchar,rating double,new_customer Boolean)\
+>With(VALUE_FORMAT='JSON',KAFKA_TOPIC='identify_json_error');
+
 {
 	"customer_name":"Kumar,anil and Nagendra","complaint_type":"Rude behaviour","rating":1.2,"new_customer":true
 }
