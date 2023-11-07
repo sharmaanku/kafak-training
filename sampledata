@@ -1,0 +1,6 @@
+{
+	"customer_name":"Kumar,anil and Nagendra","complaint_type":"Rude behaviour","rating":1.2,"new_customer":true
+}
+{
+	"customer_name":"Kumar,anil and Nagendra","complaint_type":"Rude behaviour","rating":1.2,"new_customer":shouldbeboolean
+}
