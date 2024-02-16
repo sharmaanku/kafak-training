@@ -1,11 +1,18 @@
-FROM ubuntu
-ENV workdir=/bin
-WORKDIR $workdir
+# syntax=docker/dockerfile:1
+FROM golang:1.21
+ENV workdir=src
+WORKDIR /$workdir
+COPY <<EOF ./main.go
+package main
 
-COPY ./target .
+import "fmt"
 
+func main() {
+  fmt.Println("hello, world")
+}
+EOF
+RUN go build -o /bin/hello ./main.go
 
-FROM alpine
-COPY ./bin/target* /usr/local/data/
-
-CMD[ java -c '']
+FROM scratch
+COPY --from=0 /bin/hello /bin/hello
+CMD ["/bin/hello"]
